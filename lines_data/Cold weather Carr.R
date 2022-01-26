@@ -157,20 +157,20 @@ gambling_info <- gambling_info %>%
     conference = ifelse((home_team %in% NFC) & (away_team %in% NFC), 'NFC', 
                         ifelse((home_team %in% AFC) & (away_team %in% AFC), 'AFC', 'Inter Conf.')),
     division = ifelse(div_game == 1, ifelse(home_team %in% NFC_E, 'NFC East',
-                                     ifelse(home_team %in% NFC_S, 'NFC South',
-                                     ifelse(home_team %in% NFC_N, 'NFC North',
-                                     ifelse(home_team %in% NFC_W, 'NFC West',
-                                     ifelse(home_team %in% AFC_E, 'AFC East',
-                                     ifelse(home_team %in% AFC_S, 'AFC South',
-                                     ifelse(home_team %in% AFC_N, 'AFC North',
-                                     'AFC West'))))))),
+                                            ifelse(home_team %in% NFC_S, 'NFC South',
+                                                   ifelse(home_team %in% NFC_N, 'NFC North',
+                                                          ifelse(home_team %in% NFC_W, 'NFC West',
+                                                                 ifelse(home_team %in% AFC_E, 'AFC East',
+                                                                        ifelse(home_team %in% AFC_S, 'AFC South',
+                                                                               ifelse(home_team %in% AFC_N, 'AFC North',
+                                                                                      'AFC West'))))))),
                       'Inter Div.'),
     matchup = paste(home_team, "v", away_team),
     qb_matchup = paste(home_qb_name, "v", away_qb_name),
     coaching_matchup = paste(home_coach, "v", away_coach)
   ) %>%
   distinct()
-  
+
 
 #change col order for aesthetic
 reorder <- c("game_id","season","game_type","week","matchup","home_team","away_team","home_score","away_score","result","spread_line",
@@ -178,9 +178,22 @@ reorder <- c("game_id","season","game_type","week","matchup","home_team","away_t
              "conference","division","home_rest","away_rest","weekday","gametime", "referee", "stadium","roof","surface","temp","wind",
              "weather", "home_win", "road_win", "tie",
              "home_ATS_win","road_ATS_win","home_ATS_loss","road_ATS_loss", "ATS_push","over","under","push","div_game","home_moneyline","away_moneyline"
-             )
+)
 gambling_info <- gambling_info[,reorder]
 
 
+carr <- subset(gambling_info, temp <=50 | is.na(temp)) %>%
+  filter(
+    away_qb_name == 'Derek Carr',
+    roof == 'outdoors'
+    )
+
+  # now will filter out 3 games where carr is the road qb in temps greater than 50
+carr <- carr %>%
+  filter(week != 2 & week != 9 & week != 6)
+
+## save as a CSV file
+write.csv(carr,'/Users/tcjurgens/Documents/Personal/NFL-lines/lines_data/cold_weather_carr.csv')
 
 
+  
