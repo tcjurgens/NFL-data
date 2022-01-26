@@ -31,7 +31,7 @@ offensive_epa_data <- ML_data %>%
   summarize(off_epa = mean(epa),
             off_pass_epa = mean(epa[play_type == "pass"]),
             off_rush_epa = mean(epa[play_type == "run"]),
-            .groups = "drop")
+            .groups = "drop") 
 
 home_games <- offensive_epa_data %>% 
   filter(home_team == posteam) %>% 
@@ -72,5 +72,5 @@ def_epa <- left_join(home_defense, away_defense, by = c('game_id','season','week
 # merge for the machine learning mmodel / preds
 ml_epa_data <- left_join(qbs_epa,def_epa, by = c('game_id','home_team','away_team','season','week'))
 
-write.csv(ml_epa_data,'/Users/tcjurgens/Documents/Data_Final_Project/NFL-Analytics-Project/machine learning/cleaner_data.csv')
+write.csv(ml_epa_data,'/Users/tcjurgens/Documents/Personal/NFL-lines/ml_data/epa_data.csv')
 

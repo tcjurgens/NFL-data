@@ -1,51 +1,4 @@
 library(tidyverse)
-library(tidyquant)
-#library(DataEditR)
-library(openxlsx)
-#library(tableHTML)
-library(glue)
-library(nflfastR)
-#library(DT)
-#library(shinydashboard)
-#library(shinydashboardPlus)
-#library(bs4Dash)
-#library(shiny)
-#### Use this start of code when filtering for specific team data
-
-load_sharpe_data <- function(file_name) {
-  url <- glue("https://raw.githubusercontent.com/nflverse/nfldata/master/data/{file_name}.csv")
-  suppressWarnings({ df <- read_csv(url, col_types = cols()) })
-  return(df)
-}
-gambling_info <-load_sharpe_data("games") %>% 
-  filter(season %in% c(2011:2021)) %>%
-  select(game_id, season, game_type, week, home_coach, away_coach, home_team, away_team, home_qb_name, away_qb_name,
-         home_score, away_score, spread_line, result, home_moneyline, away_moneyline,
-         total_line, total, overtime, home_rest, away_rest, div_game,
-         weekday, gametime, referee, stadium, roof, surface, temp, wind) 
-
-pbp <- load_pbp(2011:2021) %>%
-  select(game_id, weather) %>%
-  distinct() 
-
-#merge the data to get all the info we need
-gambling_info<- full_join(gambling_info, pbp, by = "game_id")  
-
-#change gametime to character type column so its easier to filter 
-gambling_info$gametime <- as.character(gambling_info$gametime)
-
-#filter so favored home teams spread_line column will now be negative
-for(row in 1:nrow(gambling_info)) {
-  gambling_info[row,'spread_line'] <- (gambling_info[row,'spread_line'])*-1
-}
-#result column will be negative if the home team wins outright
-for(row in 1:nrow(gambling_info)) {
-  gambling_info[row,'result'] <- (gambling_info[row,'result'])*-1
-}
-
-#add spread and total results
-####  ATS_win signifies that the home team has covered
-library(tidyverse)
 library(glue)
 library(nflfastR)
 
@@ -157,28 +110,41 @@ gambling_info <- gambling_info %>%
     conference = ifelse((home_team %in% NFC) & (away_team %in% NFC), 'NFC', 
                         ifelse((home_team %in% AFC) & (away_team %in% AFC), 'AFC', 'Inter Conf.')),
     division = ifelse(div_game == 1, ifelse(home_team %in% NFC_E, 'NFC East',
-                                     ifelse(home_team %in% NFC_S, 'NFC South',
-                                     ifelse(home_team %in% NFC_N, 'NFC North',
-                                     ifelse(home_team %in% NFC_W, 'NFC West',
-                                     ifelse(home_team %in% AFC_E, 'AFC East',
-                                     ifelse(home_team %in% AFC_S, 'AFC South',
-                                     ifelse(home_team %in% AFC_N, 'AFC North',
-                                     'AFC West'))))))),
+                                            ifelse(home_team %in% NFC_S, 'NFC South',
+                                                   ifelse(home_team %in% NFC_N, 'NFC North',
+                                                          ifelse(home_team %in% NFC_W, 'NFC West',
+                                                                 ifelse(home_team %in% AFC_E, 'AFC East',
+                                                                        ifelse(home_team %in% AFC_S, 'AFC South',
+                                                                               ifelse(home_team %in% AFC_N, 'AFC North',
+                                                                                      'AFC West'))))))),
                       'Inter Div.'),
     matchup = paste(home_team, "v", away_team),
     qb_matchup = paste(home_qb_name, "v", away_qb_name),
     coaching_matchup = paste(home_coach, "v", away_coach)
   ) %>%
   distinct()
-  
 
-#change col order for aesthetic
-reorder <- c("game_id","season","game_type","week","matchup","home_team","away_team","home_score","away_score","result","spread_line",
-             "total","total_line","overtime","qb_matchup","home_qb_name","away_qb_name","coaching_matchup","home_coach","away_coach",
-             "conference","division","home_rest","away_rest","weekday","gametime", "referee", "stadium","roof","surface","temp","wind",
-             "weather", "home_win", "road_win", "tie",
-             "home_ATS_win","road_ATS_win","home_ATS_loss","road_ATS_loss", "ATS_push","over","under","push","div_game","home_moneyline","away_moneyline"
-             )
-gambling_info <- gambling_info[,reorder]
+library(openxlsx)
+
+thursday_games <- gambling_info %>%
+  filter(week != 1,
+         weekday == 'Thursday',
+         game_type == 'REG',
+         conference == 'Inter Conf.',
+         spread_line >= 0)
+
+
+
+wb <- createWorkbook()
+addWorksheet(wb, sheetName = 'Thursday Night Football')
+#add data
+writeDataTable(wb, sheet = 'Thursday Night Football', x = thursday_games)
+#and finally,  save the excel file
+saveWorkbook(wb, '/Users/tcjurgens/Documents/Personal/NFL-lines/tnf_inter_conf_road_favs.xlsx', overwrite = TRUE)
+
+## save as a CSV file
+write.csv(gambling_info,'/Users/tcjurgens/Documents/Personal/tnf_inter_conf_road_favs.csv')
+
+
 
 
