@@ -195,5 +195,12 @@ carr <- carr %>%
 ## save as a CSV file
 write.csv(carr,'/Users/tcjurgens/Documents/Personal/NFL-lines/lines_data/cold_weather_carr.csv')
 
+wb <- createWorkbook()
+addWorksheet(wb, sheetName = 'Cold Weather Carr')
+#add data
+writeDataTable(wb, sheet = 'Cold Weather Carr', x = carr)
+#and finally,  save the excel file
+saveWorkbook(wb, '/Users/tcjurgens/Documents/Personal/NFL-lines/cold_weather_carr.xlsx', overwrite = TRUE)
+
 
   

@@ -181,6 +181,18 @@ reorder <- c("game_id","season","game_type","week","matchup","home_team","away_t
              )
 gambling_info <- gambling_info[,reorder]
 
+games_history <- gambling_info %>%
+  filter(
+    game_type == 'REG'
+  )
+
+wb <- createWorkbook()
+addWorksheet(wb, sheetName = '2011-2021 Regular Season Games')
+#add data
+writeDataTable(wb, sheet = '2011-2021 Regular Season Games', x = games_history)
+#and finally,  save the excel file
+saveWorkbook(wb, '/Users/tcjurgens/Documents/Personal/NFL-lines/games_2011_2021.xlsx', overwrite = TRUE)
+
 
 
 
